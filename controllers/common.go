@@ -8,12 +8,17 @@ type JsonStruct struct {
 	Data  any   `json:"data"`
 	Count int64 `json:"count"`
 }
+type JsonStruct_bad struct {
+	Code int `json:"code"`
+	Msg  any `json:"msg"`
+	Data any `json:"data"`
+}
 
-func ReturnSuccess(c *gin.Context, code int, msg any, data any, count int64) {
+func (j JsonStruct) ReturnSuccess(c *gin.Context, code int, msg any, data any, count int64) {
 	json := &JsonStruct{Code: code, Msg: msg, Data: data, Count: count}
 	c.JSON(200, json)
 }
-func ReturnError(c *gin.Context, code int, msg any) {
-	json := &JsonStruct{Code: code, Msg: msg}
+func (j JsonStruct_bad) ReturnError(c *gin.Context, code int, msg any, data any) {
+	json := &JsonStruct_bad{Code: code, Msg: msg, Data: data}
 	c.JSON(300, json)
 }
