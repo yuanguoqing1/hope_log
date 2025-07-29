@@ -44,6 +44,12 @@ func Router() *gin.Engine {
 			})
 		})
 	}
-
+	// blog页面
+	blog := router.Group("/")
+	{
+		blog.GET("", func(c *gin.Context) {
+			c.HTML(200, "index.html", gin.H{})
+		})
+	}
 	return router
 }

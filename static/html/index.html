@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客页面</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            background: #f7f7f7;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #222;
+            color: #fff;
+            padding: 0 32px;
+            height: 60px;
+        }
+        .navbar-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .navbar-actions {
+            display: flex;
+            gap: 16px;
+        }
+        .navbar-actions a {
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 18px;
+            border-radius: 4px;
+            background: #007bff;
+            transition: background 0.2s;
+        }
+        .navbar-actions a:hover {
+            background: #0056b3;
+        }
+        .main-content {
+            margin: 40px auto;
+            max-width: 800px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            padding: 32px;
+            min-height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-title">博客页面</div>
+        <div class="navbar-actions">
+            <a href="/user/login">登录</a>
+            <a href="/user/register">注册</a>
+        </div>
+    </nav>
+    <div class="main-content">
+        <!-- 博客内容区域，可根据需要扩展 -->
+    </div>
+</body>
+</html> 
