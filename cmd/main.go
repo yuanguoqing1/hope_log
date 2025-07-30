@@ -9,6 +9,8 @@ func main() {
 	//初始化logger
 	logger.InitLogger()
 	defer logger.Close()
+	//初始化数据库
+
 	//初始化路由
 	route := router.Router()
 	if route != nil {
