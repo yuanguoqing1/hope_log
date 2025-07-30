@@ -27,7 +27,7 @@ func Router() *gin.Engine {
 		})
 
 		//登录API
-		user.POST("/api/login", func(c *gin.Context) {
+		user.POST("/user/login", func(c *gin.Context) {
 			// TODO: 实现登录逻辑
 			c.JSON(200, gin.H{
 				"success": true,
