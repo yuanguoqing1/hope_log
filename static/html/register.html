@@ -264,7 +264,7 @@
 
             if (isValid) {
                 // 发送注册请求
-                fetch('/api/register', {
+                fetch('/user/api/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -277,10 +277,10 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
-                        window.location.href = '/login';
+                    if (data.code === 200) {  // 根据你的后端返回格式
+                        window.location.href = '/user/login';
                     } else {
-                        alert(data.message || '注册失败，请重试');
+                        alert(data.msg || '注册失败，请重试');  // 显示具体错误信息
                     }
                 })
                 .catch(error => {

@@ -2,14 +2,15 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"hope_blog/internal/controllers"
 )
 
-func Router() *gin.Engine {
+func InitRouter() *gin.Engine {
 	//初始化
 	router := gin.Default()
 
-	//加载HTML模板
-	router.LoadHTMLGlob("static/html/*")
+	//加载HTML模板 - 修正模板路径
+	router.LoadHTMLGlob("../static/html/*")
 	//用户路由组
 	user := router.Group("/user")
 	{
@@ -27,22 +28,10 @@ func Router() *gin.Engine {
 		})
 
 		//登录API
-		user.POST("/user/login", func(c *gin.Context) {
-			// TODO: 实现登录逻辑
-			c.JSON(200, gin.H{
-				"success": true,
-				"message": "登录成功",
-			})
-		})
+		user.POST("/api/login", controllers.Users{}.Login)
 
 		//注册API
-		user.POST("/api/register", func(c *gin.Context) {
-			// TODO: 实现注册逻辑
-			c.JSON(200, gin.H{
-				"success": true,
-				"message": "注册成功",
-			})
-		})
+		user.POST("/api/register", controllers.Users{}.Register)
 	}
 	// blog页面
 	blog := router.Group("/")

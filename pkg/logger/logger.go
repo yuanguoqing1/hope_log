@@ -22,7 +22,7 @@ func caller() slog.Attr {
 	}
 	return slog.String("caller", filepath.Base(file)+":"+string(rune(line)))
 }
-func InitLogger() {
+func InitLogger() error {
 	//创建log文件夹
 	os.Mkdir("log", 0755)
 	//创建info日志文件
@@ -33,6 +33,7 @@ func InitLogger() {
 	writeFile, _ := os.OpenFile("log/root.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	writeHandler := slog.NewTextHandler(writeFile, nil)
 	writeLogger = slog.New(writeHandler)
+	return nil
 }
 
 func Info(msg string, args ...any) {

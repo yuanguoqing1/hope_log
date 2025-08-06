@@ -1,0 +1,11 @@
+server:
+  port: 9999
+  mode: debug
+
+database:
+  host: localhost
+  port: 3306
+  user: hope
+  password: 123456
+  database: web_blog
+  charset: utf8mb4
