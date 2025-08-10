@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 
 	"hope_blog/config"
@@ -84,14 +85,80 @@ func (u Users) Login(c *gin.Context) {
 		JsonStruct_bad{}.ReturnError(c, 400, "参数错误", err.Error())
 		return
 	}
-	exits, err := checkUser(req.Username)
-	if err != nil {
-		JsonStruct_bad{}.ReturnError(c, 500, "数据库错误", err.Error())
-		return
-	}
-	if !exits {
+	
+	// 获取用户信息
+	var user models.User
+	if err := config.GetDB().Where("username = ?", req.Username).First(&user).Error; err != nil {
 		JsonStruct_bad{}.ReturnError(c, 400, "用户名不存在,请注册", nil)
 		return
 	}
-	err = models.User.ValidatePassword(req.Password)
+	
+	// 验证密码
+	if !user.ValidatePassword(req.Password) {
+		JsonStruct_bad{}.ReturnError(c, 400, "密码错误", nil)
+		return
+	}
+	
+	// 登录成功，更新最后登录时间
+	if err := user.UpdateLastLogin(config.GetDB()); err != nil {
+		// 记录错误但不影响登录流程
+		// 可以在这里添加日志记录
+	}
+	
+	// 保存用户信息到session
+	session := sessions.Default(c)
+	session.Set("user_id", user.ID)
+	session.Set("username", user.Username)
+	session.Set("email", user.Email)
+	
+	
+	if err := session.Save(); err != nil {
+
+		JsonStruct_bad{}.ReturnError(c, 500, "Session保存失败", err.Error())
+		return
+	}
+	
+
+
+
+	
+	// 返回登录成功信息
+	JsonStruct{}.ReturnSuccess(c, 200, "登录成功", gin.H{
+		"user_id":  user.ID,
+		"username": user.Username,
+		"email":    user.Email,
+	}, int64(user.ID))
+}
+
+// GetCurrentUser 获取当前登录用户信息
+func (u Users) GetCurrentUser(c *gin.Context) {
+	
+	// 从session中获取用户信息
+	session := sessions.Default(c)
+	userID := session.Get("user_id")
+	username := session.Get("username")
+	email := session.Get("email")
+
+	
+	
+	if userID == nil {
+		JsonStruct_bad{}.ReturnError(c, 401, "未登录", nil)
+		return
+	}
+
+
+	JsonStruct{}.ReturnSuccess(c, 200, "获取用户信息成功", gin.H{
+		"user_id":  userID,
+		"username": username,
+		"email":    email,
+	}, int64(userID.(uint)))
+}
+
+// Logout 退出登录
+func (u Users) Logout(c *gin.Context) {
+	session := sessions.Default(c)
+	session.Clear()
+	session.Save()
+	
+	JsonStruct{}.ReturnSuccess(c, 200, "退出登录成功", nil, 0)
 }

@@ -75,7 +75,7 @@ func InitDB() error {
 	}
 
 	// 自动迁移模型
-	if err := DB.AutoMigrate(&models.User{}); err != nil {
+	if err := DB.AutoMigrate(&models.User{}, &models.Blog{}); err != nil {
 		logger.Error("数据库迁移失败", "error", err)
 		return fmt.Errorf("数据库迁移失败: %v", err)
 	}

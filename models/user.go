@@ -1,6 +1,7 @@
 package models
 
 import (
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -26,11 +27,16 @@ func (User) TableName() string {
 // BeforeSave GORM 钩子 - 保存前加密密码
 func (u *User) BeforeSave(tx *gorm.DB) error {
 	if u.Password != "" {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
-		if err != nil {
-			return err
+		// 检查密码是否已经被加密过（bcrypt hash 通常以 $2a$, $2b$, $2y$ 开头）
+		if len(u.Password) < 60 || (!strings.HasPrefix(u.Password, "$2a$") && 
+			!strings.HasPrefix(u.Password, "$2b$") && 
+			!strings.HasPrefix(u.Password, "$2y$")) {
+			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+			if err != nil {
+				return err
+			}
+			u.Password = string(hashedPassword)
 		}
-		u.Password = string(hashedPassword)
 	}
 	return nil
 }
@@ -38,10 +44,7 @@ func (u *User) BeforeSave(tx *gorm.DB) error {
 // ValidatePassword 验证密码
 func (u *User) ValidatePassword(password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
-	if err != nil {
-		return false
-	}
-	return nil
+	return err == nil
 }
 
 // ChangePassword 修改密码

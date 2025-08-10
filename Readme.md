@@ -1,3 +1,4 @@
 go项目的个人博客完善和学习中如果可能请在issue里发表您的表贵意见我都会看的。
 刚开始接触编程ing
-hello world
+
+设置数据库等配置文件请前往config/config.yaml文件进行配置

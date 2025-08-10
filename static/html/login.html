@@ -167,14 +167,16 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    window.location.href = '/dashboard';
+                if (data.code === 200) {
+                    // 登录成功，session已在服务器端保存
+                    alert('登录成功！欢迎回来，' + data.data.username);
+                    window.location.href = '/';
                 } else {
-                    alert(data.message || '登录失败，请检查用户名和密码');
+                    alert(data.msg || '登录失败，请检查用户名和密码');
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
+
                 alert('登录过程中发生错误，请稍后重试');
             });
         });

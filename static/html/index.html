@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>博客页面</title>
     <style>
         body {
@@ -39,27 +42,790 @@
         .navbar-actions a:hover {
             background: #0056b3;
         }
+        .user-welcome {
+            color: #fff;
+            padding: 8px 18px;
+            background: #28a745;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .logout-btn {
+            color: #fff !important;
+            background: #dc3545 !important;
+        }
+        .logout-btn:hover {
+            background: #c82333 !important;
+        }
         .main-content {
             margin: 40px auto;
-            max-width: 800px;
+            max-width: 1000px;
             background: #fff;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             padding: 32px;
             min-height: 300px;
         }
+        .blog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 20px;
+        }
+        .blog-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        .btn-new-blog {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .btn-new-blog:hover {
+            background: #218838;
+        }
+        .blog-list {
+            min-height: 200px;
+        }
+        .blog-item {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .blog-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .blog-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .blog-summary {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .blog-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+            color: #999;
+        }
+        .blog-author {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 10px;
+        }
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .pagination button:hover {
+            background: #f8f9fa;
+        }
+        .pagination button.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        /* 模态框样式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .modal-header h3 {
+            margin: 0;
+        }
+        .close {
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        .close:hover {
+            color: #333;
+        }
+        .modal-body {
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .form-group textarea {
+            resize: vertical;
+            font-family: inherit;
+        }
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        .form-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .form-actions button[type="submit"] {
+            background: #007bff;
+            color: white;
+        }
+        .form-actions button[type="button"] {
+            background: #6c757d;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="navbar-title">博客页面</div>
-        <div class="navbar-actions">
-            <a href="/user/login">登录</a>
-            <a href="/user/register">注册</a>
+        <div class="navbar-actions" id="navbar-actions">
+            <!-- 动态内容将通过JavaScript插入 -->
         </div>
     </nav>
     <div class="main-content">
-        <!-- 博客内容区域，可根据需要扩展 -->
+        <!-- 博客操作区域 -->
+        <div class="blog-header">
+            <h2>博客文章</h2>
+            <div style="display:flex; gap:8px; align-items:center; margin-left:auto;">
+                <div id="blog-filter" style="display:flex; gap:6px;">
+                    <button id="filter-published" type="button" style="padding:6px 10px;">已发布</button>
+                    <button id="filter-drafts" type="button" style="padding:6px 10px;">草稿</button>
+                </div>
+                <button id="new-blog-btn" class="btn-new-blog" style="display: none;">新建博客</button>
+            </div>
+        </div>
+        
+        <!-- 博客列表 -->
+        <div id="blog-list" class="blog-list">
+            <div class="loading">加载中...</div>
+        </div>
+        
+        <!-- 分页 -->
+        <div id="pagination" class="pagination" style="display: none;">
+        </div>
     </div>
+
+    <!-- 新建博客模态框 -->
+    <div id="blog-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">新建博客</h3>
+                <span class="close" onclick="closeBlogModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="blog-form">
+                    <div class="form-group">
+                        <label for="blog-title">标题</label>
+                        <input type="text" id="blog-title" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="blog-summary">摘要（可选）</label>
+                        <textarea id="blog-summary" name="summary" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="blog-content">内容</label>
+                        <textarea id="blog-content" name="content" rows="10" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="blog-publish" name="status" value="1" checked>
+                            立即发布
+                        </label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="closeBlogModal()">取消</button>
+                        <button type="button" onclick="saveDraft()" style="background:#6c757d;color:#fff;">存为草稿</button>
+                        <button type="submit">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 博客详情模态框 -->
+    <div id="blog-detail-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="detail-title">博客详情</h3>
+                <span class="close" onclick="closeBlogDetailModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h4 id="detail-blog-title"></h4>
+                <div id="detail-meta" class="blog-meta" style="margin: 8px 0; color: #666; font-size: 12px;"></div>
+                <p id="detail-summary" style="background:#f8f9fa; padding:10px; border-radius:6px;"></p>
+                <div id="detail-content" style="margin-top:12px; white-space: pre-wrap;"></div>
+                <div id="detail-actions" style="margin-top: 16px; text-align: right;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 检查用户登录状态并动态更新导航栏
+        function updateNavbar() {
+            const navbarActions = document.getElementById('navbar-actions');
+            
+            
+            // 调用后端API检查登录状态
+            fetch('/user/api/current', {
+                method: 'GET',
+                credentials: 'include', // 包含cookies以发送session
+                cache: 'no-cache' // 禁用缓存
+            })
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                
+                if (data.code === 200) {
+                    currentUser = data.data;
+                    // 用户已登录，显示欢迎信息和退出按钮
+                    navbarActions.innerHTML = `
+                        <span class="user-welcome">欢迎，${data.data.username}</span>
+                        <a href="#" class="logout-btn" onclick="logout()">退出登录</a>
+                    `;
+                    // 显示新建博客按钮
+                    document.getElementById('new-blog-btn').style.display = 'block';
+                } else {
+                    currentUser = null;
+                    // 用户未登录，显示登录和注册按钮
+                    navbarActions.innerHTML = `
+                        <a href="/user/login">登录</a>
+                        <a href="/user/register">注册</a>
+                    `;
+                    // 隐藏新建博客按钮
+                    document.getElementById('new-blog-btn').style.display = 'none';
+                }
+            })
+            .catch(error => {
+
+                // 出错时显示登录和注册按钮
+                navbarActions.innerHTML = `
+                    <a href="/user/login">登录</a>
+                    <a href="/user/register">注册</a>
+                `;
+            });
+        }
+
+        // 退出登录函数
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                fetch('/user/api/logout', {
+                    method: 'POST',
+                    credentials: 'include' // 包含cookies以发送session
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 200) {
+                        alert('已退出登录');
+                        updateNavbar();
+                    } else {
+                        alert('退出登录失败');
+                    }
+                })
+                .catch(error => {
+
+                    alert('退出登录过程中发生错误');
+                });
+            }
+        }
+
+        // 全局变量
+        let currentUser = null;
+        let currentPage = 1;
+        let isSavingDraft = false;
+        // 1=已发布, 0=草稿
+        let currentStatusFilter = 1;
+
+        // 页面加载时更新导航栏和加载博客
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNavbar();
+            setFilterActiveButton();
+            loadBlogs();
+            
+            // 绑定新建博客按钮事件
+            document.getElementById('new-blog-btn').addEventListener('click', openBlogModal);
+            
+            // 绑定博客表单提交事件
+            document.getElementById('blog-form').addEventListener('submit', handleBlogSubmit);
+            // 绑定筛选按钮
+            const filterPublishedBtn = document.getElementById('filter-published');
+            const filterDraftsBtn = document.getElementById('filter-drafts');
+            if (filterPublishedBtn && filterDraftsBtn) {
+                filterPublishedBtn.addEventListener('click', function(){
+                    currentStatusFilter = 1;
+                    currentPage = 1;
+                    setFilterActiveButton();
+                    loadBlogs(1);
+                });
+                filterDraftsBtn.addEventListener('click', function(){
+                    currentStatusFilter = 0;
+                    currentPage = 1;
+                    setFilterActiveButton();
+                    loadBlogs(1);
+                });
+            }
+        });
+
+        function setFilterActiveButton(){
+            const pubBtn = document.getElementById('filter-published');
+            const draftBtn = document.getElementById('filter-drafts');
+            if (!pubBtn || !draftBtn) return;
+            if (currentStatusFilter === 1) {
+                pubBtn.style.background = '#007bff';
+                pubBtn.style.color = '#fff';
+                draftBtn.style.background = '';
+                draftBtn.style.color = '';
+            } else {
+                draftBtn.style.background = '#007bff';
+                draftBtn.style.color = '#fff';
+                pubBtn.style.background = '';
+                pubBtn.style.color = '';
+            }
+        }
+
+        // 加载博客列表
+        function loadBlogs(page = 1) {
+            const blogList = document.getElementById('blog-list');
+            const pagination = document.getElementById('pagination');
+            
+            blogList.innerHTML = '<div class="loading">加载中...</div>';
+            // 带上筛选参数，避免草稿混入已发布
+            const params = new URLSearchParams();
+            params.set('page', page);
+            params.set('page_size', 10);
+            if (currentStatusFilter === 0) {
+                params.set('status', 0);
+                params.set('own', 1);
+            } else {
+                params.set('status', 1);
+            }
+
+            fetch(`/api/blogs?${params.toString()}`, {
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 200) {
+                    displayBlogs(data.data.blogs);
+                    displayPagination(data.data.pagination);
+                    currentPage = page;
+                } else {
+                    blogList.innerHTML = '<div class="loading">暂无博客文章</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                blogList.innerHTML = '<div class="loading">加载失败</div>';
+            });
+        }
+
+        // 显示博客列表
+        function displayBlogs(blogs) {
+            const blogList = document.getElementById('blog-list');
+            
+            if (!blogs || blogs.length === 0) {
+                blogList.innerHTML = '<div class="loading">暂无博客文章</div>';
+                return;
+            }
+            // 前端兜底过滤，确保视图只显示当前筛选状态
+            const filtered = (Array.isArray(blogs) ? blogs : []).filter(blog => {
+                const status = typeof blog.status === 'number' ? blog.status : 1;
+                return currentStatusFilter === 1 ? status === 1 : status === 0;
+            });
+
+            if (filtered.length === 0) {
+                blogList.innerHTML = '<div class="loading">暂无博客文章</div>';
+                return;
+            }
+
+            const blogsHtml = filtered.map(blog => `
+                <div class="blog-item" onclick="viewBlog(${blog.ID})">
+                    <div class="blog-title">${blog.title}</div>
+                    <div class="blog-summary">${blog.summary || '暂无摘要'}</div>
+                    <div class="blog-meta">
+                        <span>作者: <span class="blog-author">${blog.author.username}</span></span>
+                        <span>${formatDate(blog.created_at)} | 阅读量: ${blog.view_count}</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            blogList.innerHTML = blogsHtml;
+        }
+
+        // 显示分页
+        function displayPagination(pagination) {
+            const paginationEl = document.getElementById('pagination');
+            
+            if (pagination.pages <= 1) {
+                paginationEl.style.display = 'none';
+                return;
+            }
+            
+            paginationEl.style.display = 'flex';
+            
+            let paginationHtml = '';
+            
+            // 上一页按钮
+            paginationHtml += `<button onclick="loadBlogs(${pagination.page - 1})" ${pagination.page <= 1 ? 'disabled' : ''}>上一页</button>`;
+            
+            // 页码按钮
+            for (let i = 1; i <= pagination.pages; i++) {
+                if (i === pagination.page) {
+                    paginationHtml += `<button class="active">${i}</button>`;
+                } else {
+                    paginationHtml += `<button onclick="loadBlogs(${i})">${i}</button>`;
+                }
+            }
+            
+            // 下一页按钮
+            paginationHtml += `<button onclick="loadBlogs(${pagination.page + 1})" ${pagination.page >= pagination.pages ? 'disabled' : ''}>下一页</button>`;
+            
+            paginationEl.innerHTML = paginationHtml;
+        }
+
+        // 安全设置文本内容，元素不存在时仅告警不抛错
+        function safeSetText(id, text) {
+            const el = document.getElementById(id);
+            if (!el) {
+                console.warn('Missing element:', id);
+                return false;
+            }
+            el.textContent = text ?? '';
+            return true;
+        }
+
+        // 渲染博客详情（用于已发布或草稿）
+        function renderBlogDetail(blog) {
+            // 填充详情
+            safeSetText('detail-title', '博客详情');
+            safeSetText('detail-blog-title', blog.title || '');
+
+            const authorName = blog.author && blog.author.username ? blog.author.username : '未知作者';
+            const createdAt = blog.created_at ? formatDate(blog.created_at) : '';
+            const viewCount = typeof blog.view_count === 'number' ? blog.view_count : 0;
+            safeSetText('detail-meta', `作者: ${authorName} | 时间: ${createdAt} | 阅读: ${viewCount}`);
+
+            safeSetText('detail-summary', blog.summary || '无摘要');
+            safeSetText('detail-content', blog.content || '');
+
+            // 操作区
+            const actions = document.getElementById('detail-actions');
+            if (actions) {
+                actions.innerHTML = '';
+                const loginUserId = currentUser && (currentUser.user_id || currentUser.id);
+                const authorId = blog.author_id || (blog.author && (blog.author.ID || blog.author.id));
+                const isOwner = loginUserId && authorId && Number(loginUserId) === Number(authorId);
+                if (isOwner) {
+                    // 草稿：显示发布 + 删除
+                    if (blog.status === 0) { 
+                        const pubBtn = document.createElement('button');
+                        pubBtn.textContent = '发布';
+                        pubBtn.style.background = '#28a745';
+                        pubBtn.style.color = '#fff';
+                        pubBtn.style.border = 'none';
+                        pubBtn.style.padding = '8px 12px';
+                        pubBtn.style.borderRadius = '4px';
+                        pubBtn.style.marginRight = '8px';
+                        pubBtn.onclick = function () { publishBlog(blog); };
+                        actions.appendChild(pubBtn);
+                    }
+                    // 删除按钮（草稿/已发布均可显示）
+                    const delBtn = document.createElement('button');
+                    delBtn.textContent = '删除博客';
+                    delBtn.style.background = '#dc3545';
+                    delBtn.style.color = '#fff';
+                    delBtn.style.border = 'none';
+                    delBtn.style.padding = '8px 12px';
+                    delBtn.style.borderRadius = '4px';
+                    delBtn.onclick = function () { deleteBlog(blog.ID || blog.id); };
+                    actions.appendChild(delBtn);
+                }
+            }
+
+            // 显示模态框
+            openBlogDetailModal();
+        }
+
+        // 查看博客详情
+        function viewBlog(id) {
+            // 拉取详情
+            fetch(`/api/blogs/${id}`, { credentials: 'include' })
+                .then(res => res.json())
+                .then(data => {
+                    console.log('Debug: 详情接口 code =', data?.code, 'msg =', data?.msg);
+                    if (data.code !== 200) {
+                        alert(data.msg || '获取详情失败');
+                        return;
+                    }
+                    renderBlogDetail(data.data);
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('获取详情过程中发生错误');
+                });
+        }
+
+        // 发布博客（从草稿到已发布，不增加阅读量）
+        function publishBlog(blog) {
+            const id = blog.ID || blog.id;
+            if (!id) return;
+            if (!confirm('确认发布该草稿吗？')) return;
+            const payload = {
+                title: blog.title,
+                content: blog.content,
+                summary: blog.summary || '',
+                status: 1
+            };
+            fetch(`/api/blogs/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === 200) {
+                    alert('发布成功');
+                    closeBlogDetailModal();
+                    loadBlogs(1);
+                } else {
+                    alert(data.msg || '发布失败');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('发布过程中发生错误');
+            });
+        }
+
+        // 删除博客
+        function deleteBlog(id) {
+            if (!id) return;
+            if (!confirm('确认删除该博客吗？此操作不可恢复。')) return;
+            fetch(`/api/blogs/${id}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === 200) {
+                    alert('删除成功');
+                    closeBlogDetailModal();
+                    loadBlogs(1);
+                } else {
+                    alert(data.msg || '删除失败');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('删除过程中发生错误');
+            });
+        }
+
+        function openBlogDetailModal() {
+            const modal = document.getElementById('blog-detail-modal');
+            if (!modal) {
+                console.warn('Missing element: blog-detail-modal');
+                return;
+            }
+            modal.style.display = 'block';
+        }
+
+        function closeBlogDetailModal() {
+            const modal = document.getElementById('blog-detail-modal');
+            if (!modal) {
+                console.warn('Missing element: blog-detail-modal');
+                return;
+            }
+            modal.style.display = 'none';
+        }
+
+        // 打开博客模态框
+        function openBlogModal() {
+            document.getElementById('blog-modal').style.display = 'block';
+            document.getElementById('modal-title').textContent = '新建博客';
+            document.getElementById('blog-form').reset();
+        }
+
+        // 关闭博客模态框
+        function closeBlogModal() {
+            document.getElementById('blog-modal').style.display = 'none';
+        }
+
+        // 处理博客表单提交
+        function handleBlogSubmit(e) {
+            e.preventDefault(); 
+            if (isSavingDraft) {
+                console.log('Debug: 正在保存草稿，忽略表单提交');
+                return;
+            }
+            
+            // 首先检查登录状态
+            if (!currentUser) {
+                alert('请先登录后再创建博客');
+                return;
+            }
+            
+            const formData = new FormData(e.target);
+            const blogData = {
+                title: formData.get('title'),
+                summary: formData.get('summary'),
+                content: formData.get('content'),
+                status: formData.get('status') ? 1 : 0
+            };
+            
+            console.log('Debug: 准备创建博客，当前用户:', currentUser);
+            console.log('Debug: 博客数据:', blogData);
+            
+            fetch('/api/blogs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(blogData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 200) {
+                    alert('博客创建成功！');
+                    closeBlogModal();
+                    loadBlogs(1); // 重新加载第一页
+                } else {
+                    alert(data.msg || '创建失败');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('创建过程中发生错误');
+            });
+        }
+
+        // 存为草稿（status 强制为 0）
+        function saveDraft() {
+            if (!currentUser) {
+                alert('请先登录后再保存草稿');
+                return;
+            }
+            isSavingDraft = true;
+            const form = document.getElementById('blog-form');
+            const formData = new FormData(form);
+            const blogData = {
+                title: formData.get('title'),
+                summary: formData.get('summary'),
+                content: formData.get('content'),
+                status: 0
+            };
+            console.log('Debug: 保存草稿，数据:', blogData);
+            fetch('/api/blogs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(blogData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log('Debug: 保存草稿返回:', data);
+                if (data.code === 200) {
+                    console.log('Debug: 服务器返回的状态 status =', data?.data?.status);
+                    alert('草稿已保存');
+                    closeBlogModal();
+                    // 切换到草稿视图并刷新
+                    currentStatusFilter = 0;
+                    setFilterActiveButton();
+                    loadBlogs(1);
+                } else {
+                    alert(data.msg || '保存草稿失败');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('保存草稿过程中发生错误');
+            })
+            .finally(() => {
+                isSavingDraft = false;
+            });
+        }
+
+        // 格式化日期
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    </script>
 </body>
 </html> 
