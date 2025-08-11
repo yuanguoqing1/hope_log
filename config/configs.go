@@ -52,7 +52,6 @@ func LoadConfig() error {
 		return fmt.Errorf("解析配置文件失败: %v", err)
 	}
 
-	logger.Info("配置加载成功")
 	return nil
 }
 
@@ -80,7 +79,6 @@ func InitDB() error {
 		return fmt.Errorf("数据库迁移失败: %v", err)
 	}
 
-	logger.Info("数据库连接成功")
 	return nil
 }
 

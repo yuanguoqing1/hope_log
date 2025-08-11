@@ -29,3 +29,5 @@ func (Blog) TableName() string {
 func (b *Blog) IncrementViewCount(db *gorm.DB) error {
 	return db.Model(b).UpdateColumn("view_count", gorm.Expr("view_count + ?", 1)).Error
 }
+
+// 

@@ -22,8 +22,11 @@ func InitRouter() *gin.Engine {
 	})
 	router.Use(sessions.Sessions("blog-session", store))
 
-	//加载HTML模板 - 修正模板路径
+    //加载HTML模板 - 修正模板路径
 	router.LoadHTMLGlob("../static/html/*")
+	router.Static("/static", "../static")
+    // 提供根路径下的 favicon.ico，便于浏览器自动请求 /favicon.ico
+    router.StaticFile("/favicon.ico", "../static/favicon.ico")
 	//用户路由组
 	user := router.Group("/user")
 	{
@@ -49,6 +52,11 @@ func InitRouter() *gin.Engine {
 		//获取当前用户信息API
 		user.GET("/api/current", controllers.Users{}.GetCurrentUser)
 		
+		//用户信息API
+		user.GET("/settings" , func(c *gin.Context) {
+			c.HTML(200, "settings.html", gin.H{})
+		})
+
 		//退出登录API
 		user.POST("/api/logout", controllers.Users{}.Logout)
 	}

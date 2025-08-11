@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>个人设置</title>
+  <style>
+    body { margin:0; font-family: 'Segoe UI','Arial',sans-serif; background:#f7f7f7; }
+    .navbar { display:flex; justify-content:space-between; align-items:center; background:#222; color:#fff; padding:0 32px; height:60px; }
+    .navbar a { color:#fff; text-decoration:none; padding:8px 18px; border-radius:4px; background:#007bff; }
+    .container { margin:40px auto; max-width:800px; background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.06); padding:24px; }
+    h2 { margin-top:0; }
+    .form-group { margin-bottom:16px; }
+    .form-group label { display:block; margin-bottom:6px; font-weight:600; }
+    .form-group input { width:100%; box-sizing:border-box; padding:10px; border:1px solid #ddd; border-radius:4px; }
+    .actions { margin-top:20px; display:flex; gap:10px; }
+    .actions button { padding:10px 16px; border:none; border-radius:4px; cursor:pointer; }
+    .primary { background:#007bff; color:#fff; }
+  </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 拉取当前用户信息
+      fetch('/user/api/current', { credentials: 'include' })
+        .then(r => r.json())
+        .then(data => {
+          if (data.code !== 200 || !data.data) {
+            alert('请先登录');
+            location.href = '/user/login';
+            return;
+          }
+          document.getElementById('username').value = data.data.username || '';
+          document.getElementById('email').value = data.data.email || '';
+        })
+        .catch(() => {
+          alert('加载用户信息失败');
+        });
+
+      // 保存基础信息（示例：仅前端提示；后端接口按需补充）
+      document.getElementById('save-profile').addEventListener('click', () => {
+        const payload = {
+          username: document.getElementById('username').value.trim(),
+          email: document.getElementById('email').value.trim()
+        };
+        console.log('保存资料（示例，需后端接口对接）', payload);
+        alert('已保存（示例）。如需落库，请提供更新资料的后端接口。');
+      });
+
+      // 修改密码（示例：仅前端校验与提示；后端接口按需补充）
+      document.getElementById('change-password').addEventListener('click', () => {
+        const pwd1 = document.getElementById('password').value;
+        const pwd2 = document.getElementById('password2').value;
+        if (!pwd1 || pwd1.length < 6) { alert('密码至少6位'); return; }
+        if (pwd1 !== pwd2) { alert('两次输入的密码不一致'); return; }
+        console.log('修改密码（示例，需后端接口对接）');
+        alert('已提交（示例）。如需生效，请提供修改密码的后端接口。');
+      });
+    });
+  </script>
+</head>
+<body>
+  <div class="navbar">
+    <div>个人设置</div>
+    <div><a href="/">返回首页</a></div>
+  </div>
+  <div class="container">
+    <h2>账户资料</h2>
+    <div class="form-group">
+      <label for="username">用户名</label>
+      <input id="username" type="text" placeholder="用户名" />
+    </div>
+    <div class="form-group">
+      <label for="email">邮箱</label>
+      <input id="email" type="email" placeholder="邮箱" />
+    </div>
+    <div class="actions">
+      <button id="save-profile" class="primary">保存资料</button>
+    </div>
+
+    <h2 style="margin-top:32px;">安全设置</h2>
+    <div class="form-group">
+      <label for="password">新密码</label>
+      <input id="password" type="password" placeholder="至少6位" />
+    </div>
+    <div class="form-group">
+      <label for="password2">确认新密码</label>
+      <input id="password2" type="password" placeholder="再次输入新密码" />
+    </div>
+    <div class="actions">
+      <button id="change-password" class="primary">修改密码</button>
+    </div>
+  </div>
+</body>
+</html>
+

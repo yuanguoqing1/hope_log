@@ -219,6 +219,7 @@ func (b Blogs) DeleteBlog(c *gin.Context) {
 	// 检查用户是否登录
 	session := sessions.Default(c)
 	userID := session.Get("user_id")
+    username := session.Get("username")
 
 	if userID == nil {
 		JsonStruct_bad{}.ReturnError(c, 401, "请先登录", nil)
@@ -231,8 +232,14 @@ func (b Blogs) DeleteBlog(c *gin.Context) {
 		return
 	}
 
-	// 检查是否是作者本人
-	if blog.AuthorID != userID.(uint) {
+    // 检查是否是作者本人或root用户
+    isRoot := false
+    if username != nil {
+        if nameStr, ok := username.(string); ok && nameStr == "root" {
+            isRoot = true
+        }
+    }
+    if blog.AuthorID != userID.(uint) && !isRoot {
 		JsonStruct_bad{}.ReturnError(c, 403, "无权限删除", nil)
 		return
 	}

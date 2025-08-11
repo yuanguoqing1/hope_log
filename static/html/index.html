@@ -8,15 +8,26 @@
     <meta http-equiv="Expires" content="0">
     <title>博客页面</title>
     <style>
+        html, body { min-height: 100vh; }
         body {
             margin: 0;
             font-family: 'Segoe UI', 'Arial', sans-serif;
-            background: #f7f7f7;
+            /* 直接使用背景图，确保可见 */
+            background: #0c0f14 url('/static/img/%E8%83%8C%E6%99%AF.jpg') center center / cover no-repeat fixed;
+        }
+        /* 全屏画布用于花瓣特效 */
+        #bg-canvas {
+            position: fixed;
+            left: 0; top: 0; right: 0; bottom: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
         }
         .navbar {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: center;
+            gap: 20px;
             background: #222;
             color: #fff;
             padding: 0 32px;
@@ -30,6 +41,7 @@
         .navbar-actions {
             display: flex;
             gap: 16px;
+            margin-left: auto;
         }
         .navbar-actions a {
             color: #fff;
@@ -49,6 +61,10 @@
             border-radius: 4px;
             margin-right: 10px;
         }
+        .navbar-actions a.user-welcome {
+            background: #28a745 !important;
+            color: #fff !important;
+        }
         .logout-btn {
             color: #fff !important;
             background: #dc3545 !important;
@@ -59,23 +75,30 @@
         .main-content {
             margin: 40px auto;
             max-width: 1000px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            /* 毛玻璃容器 */
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+            backdrop-filter: blur(16px) saturate(120%);
+            -webkit-backdrop-filter: blur(16px) saturate(120%);
             padding: 32px;
             min-height: 300px;
+            position: relative;
+            z-index: 1;
+            color: #111;
         }
         .blog-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
-            border-bottom: 2px solid #f0f0f0;
+            border-bottom: 2px solid rgba(255,255,255,0.12);
             padding-bottom: 20px;
         }
         .blog-header h2 {
             margin: 0;
-            color: #333;
+            color: #111;
         }
         .btn-new-blog {
             background: #28a745;
@@ -94,24 +117,49 @@
             min-height: 200px;
         }
         .blog-item {
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.16);
+            border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            transition: box-shadow 0.2s;
+            transition: box-shadow 0.2s, background 0.2s, transform 0.15s ease;
             cursor: pointer;
         }
         .blog-item:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.10);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.25);
+            transform: translateY(-1px);
+        }
+        .blog-item-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #f0f0f0;
+            flex: 0 0 28px;
+        }
+        .avatar-fallback {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #555;
+            border: 1px solid #e1e1e1;
         }
         .blog-title {
             font-size: 1.4em;
             font-weight: bold;
-            color: #333;
+            color: #111;
             margin-bottom: 10px;
         }
         .blog-summary {
-            color: #666;
+            color: #111;
             line-height: 1.6;
             margin-bottom: 15px;
         }
@@ -120,11 +168,30 @@
             justify-content: space-between;
             align-items: center;
             font-size: 0.9em;
-            color: #999;
+            color: #111;
+        }
+        .blog-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #111;
+        }
+        .metrics {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            color: #111;
+        }
+        .metric {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
         .blog-author {
             font-weight: bold;
-            color: #007bff;
+            color: #111;
         }
         .loading {
             text-align: center;
@@ -241,11 +308,96 @@
             background: #6c757d;
             color: white;
         }
+        /* 代码块样式 */
+        pre {
+            background: #f6f8fa;
+            padding: 12px;
+            border-radius: 6px;
+            overflow: auto;
+        }
+        pre code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 13px;
+        }
+        /* 顶部下拉菜单（导航栏左侧，和登录注册同一行） */
+        .header-menus { display:flex; gap:10px; margin-left: 12px; }
+        .menu-dropdown { position: relative; }
+        .menu-dropdown-btn { padding: 8px 14px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 999px; cursor: pointer; }
+        .menu-dropdown-btn:hover { background: #eef2f7; }
+        .menu-dropdown-menu {
+            position: absolute; top: calc(100% + 6px); right: 0; min-width: 170px; background: #fff; border: 1px solid #e9ecef; border-radius: 10px; box-shadow: 0 10px 28px rgba(0,0,0,0.12); padding: 10px; display: none; z-index: 10;
+        }
+        .menu-dropdown.open .menu-dropdown-menu { display: block; }
+        .menu-dropdown-menu a {
+            display:block; padding:10px 12px; border-radius:8px; color:#333; text-decoration:none;
+        }
+        .menu-dropdown-menu a:hover { background:#f1f5ff; }
+        .menu-dropdown-menu a.disabled { color:#aaa; pointer-events:none; }
+        /* 简单暗色切换 */
+        body.dark { background: #0f1113; color: #e5e7eb; }
+        body.dark .navbar { background: #0b0d10; }
+        body.dark .main-content {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.18);
+            color: #f5f7fb;
+        }
+        body.dark .blog-header { border-bottom-color: rgba(255,255,255,0.12); }
+        body.dark .blog-header h2 { color: #f5f7fb; }
+        body.dark .blog-item {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.16);
+        }
+        body.dark .blog-title { color: #ffffff; }
+        body.dark .blog-summary { color: #e6ebf5; }
+        body.dark .blog-meta { color: #d6deea; }
+        body.dark .blog-footer { color: #d6deea; }
+        body.dark .metrics { color: #d6deea; }
+        body.dark .blog-author { color: #ffffff; }
     </style>
+  <!-- 代码高亮与Markdown解析 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.1/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 <body>
+    <canvas id="bg-canvas"></canvas>
     <nav class="navbar">
         <div class="navbar-title">博客页面</div>
+        <div class="header-menus">
+            <div class="menu-dropdown">
+                <button class="menu-dropdown-btn">博客</button>
+                <div class="menu-dropdown-menu">
+                    <a href="#" id="menu-new-blog">新建博客</a>
+                    <a href="#" id="menu-published">已发布</a>
+                    <a href="#" id="menu-drafts">草稿</a>
+                </div>
+            </div>
+            <div class="menu-dropdown">
+                <button class="menu-dropdown-btn">功能</button>
+                <div class="menu-dropdown-menu">
+                    <a href="#" id="menu-refresh">刷新列表</a>
+                    <a href="#" id="menu-top">回到顶部</a>
+                    <a href="#" id="menu-toggle-theme">浅/深色切换</a>
+                </div>
+            </div>
+            <div class="menu-dropdown">
+                <button class="menu-dropdown-btn">分类</button>
+                <div class="menu-dropdown-menu">
+                    <a href="#" class="disabled">技术（敬请期待）</a>
+                    <a href="#" class="disabled">生活（敬请期待）</a>
+                    <a href="#" class="disabled">随笔（敬请期待）</a>
+                </div>
+            </div>
+            <div class="menu-dropdown">
+                <button class="menu-dropdown-btn">更多</button>
+                <div class="menu-dropdown-menu">
+                    <a href="/user/settings">用户设置</a>
+                    <a href="/user/login">登录</a>
+                    <a href="/user/register">注册</a>
+                </div>
+            </div>
+        </div>
         <div class="navbar-actions" id="navbar-actions">
             <!-- 动态内容将通过JavaScript插入 -->
         </div>
@@ -269,8 +421,7 @@
         </div>
         
         <!-- 分页 -->
-        <div id="pagination" class="pagination" style="display: none;">
-        </div>
+        <div id="pagination" class="pagination" style="display: none;"></div>
     </div>
 
     <!-- 新建博客模态框 -->
@@ -348,7 +499,7 @@
                     currentUser = data.data;
                     // 用户已登录，显示欢迎信息和退出按钮
                     navbarActions.innerHTML = `
-                        <span class="user-welcome">欢迎，${data.data.username}</span>
+                        <a href="/user/settings" class="user-welcome">欢迎，${data.data.username}</a>
                         <a href="#" class="logout-btn" onclick="logout()">退出登录</a>
                     `;
                     // 显示新建博客按钮
@@ -409,6 +560,8 @@
             updateNavbar();
             setFilterActiveButton();
             loadBlogs();
+            initHeaderMenus();
+            initPetalEffects();
             
             // 绑定新建博客按钮事件
             document.getElementById('new-blog-btn').addEventListener('click', openBlogModal);
@@ -449,6 +602,139 @@
                 pubBtn.style.background = '';
                 pubBtn.style.color = '';
             }
+        }
+
+        // 花瓣点击特效
+        function initPetalEffects(){
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            const petals = [];
+
+            function resize(){
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                canvas.width = Math.floor(window.innerWidth * dpr);
+                canvas.height = Math.floor(window.innerHeight * dpr);
+                canvas.style.width = window.innerWidth + 'px';
+                canvas.style.height = window.innerHeight + 'px';
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            // 生成花瓣对象
+            function spawn(x, y){
+                const count = 12 + Math.floor(Math.random()*8);
+                for(let i=0;i<count;i++){
+                    petals.push({
+                        x, y,
+                        vx: (Math.random()-0.5)*2.2,
+                        vy: (Math.random()-1.2)*2.6,
+                        life: 60 + Math.random()*40,
+                        r: 4 + Math.random()*6,
+                        rot: Math.random()*Math.PI*2,
+                        vr: (Math.random()-0.5)*0.2,
+                        hue: 300 + Math.random()*80
+                    });
+                }
+            }
+
+            // 点击与轻触触发
+            document.addEventListener('pointerdown', e => {
+                const rect = canvas.getBoundingClientRect();
+                spawn(e.clientX - rect.left, e.clientY - rect.top);
+            });
+
+            function drawPetal(p){
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rot);
+                const grd = ctx.createRadialGradient(0,0,0,0,0,p.r*2);
+                grd.addColorStop(0, `hsla(${p.hue}, 90%, 75%, .95)`);
+                grd.addColorStop(1, `hsla(${p.hue}, 90%, 60%, 0)`);
+                ctx.fillStyle = grd;
+                ctx.beginPath();
+                ctx.moveTo(0, -p.r);
+                ctx.bezierCurveTo(p.r, -p.r, p.r, p.r, 0, p.r);
+                ctx.bezierCurveTo(-p.r, p.r, -p.r, -p.r, 0, -p.r);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            function tick(){
+                ctx.clearRect(0,0,canvas.width, canvas.height);
+                for(let i=petals.length-1;i>=0;i--){
+                    const p = petals[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.025; // 重力
+                    p.rot += p.vr;
+                    p.life -= 1;
+                    drawPetal(p);
+                    if (p.life <= 0) petals.splice(i,1);
+                }
+                requestAnimationFrame(tick);
+            }
+            tick();
+        }
+
+        // 初始化顶部下拉与菜单动作
+        function initHeaderMenus() {
+            // 下拉展开/收起
+            const dropdownButtons = document.querySelectorAll('.menu-dropdown .menu-dropdown-btn');
+            dropdownButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const item = this.closest('.menu-dropdown');
+                    const isOpen = item.classList.contains('open');
+                    document.querySelectorAll('.menu-dropdown.open').forEach(x => x.classList.remove('open'));
+                    if (!isOpen) item.classList.add('open');
+                });
+            });
+            // 点击外部关闭
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.menu-dropdown')) {
+                    document.querySelectorAll('.menu-dropdown.open').forEach(x => x.classList.remove('open'));
+                }
+            });
+
+            // 动作：新建、筛选、刷新、回顶、主题切换
+            const newBlogLink = document.getElementById('menu-new-blog');
+            if (newBlogLink) newBlogLink.addEventListener('click', function(e){
+                e.preventDefault();
+                const btn = document.getElementById('new-blog-btn');
+                if (btn) btn.click();
+            });
+            const publishedLink = document.getElementById('menu-published');
+            if (publishedLink) publishedLink.addEventListener('click', function(e){
+                e.preventDefault();
+                currentStatusFilter = 1;
+                currentPage = 1;
+                setFilterActiveButton();
+                loadBlogs(1);
+            });
+            const draftsLink = document.getElementById('menu-drafts');
+            if (draftsLink) draftsLink.addEventListener('click', function(e){
+                e.preventDefault();
+                currentStatusFilter = 0;
+                currentPage = 1;
+                setFilterActiveButton();
+                loadBlogs(1);
+            });
+            const refreshLink = document.getElementById('menu-refresh');
+            if (refreshLink) refreshLink.addEventListener('click', function(e){
+                e.preventDefault();
+                loadBlogs(currentPage || 1);
+            });
+            const topLink = document.getElementById('menu-top');
+            if (topLink) topLink.addEventListener('click', function(e){
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            const themeLink = document.getElementById('menu-toggle-theme');
+            if (themeLink) themeLink.addEventListener('click', function(e){
+                e.preventDefault();
+                document.body.classList.toggle('dark');
+            });
         }
 
         // 加载博客列表
@@ -506,16 +792,35 @@
                 return;
             }
 
-            const blogsHtml = filtered.map(blog => `
+            const blogsHtml = filtered.map(blog => {
+                const username = (blog.author && blog.author.username) ? blog.author.username : '未知作者';
+                const avatar = (blog.author && blog.author.avatar) ? blog.author.avatar : '';
+                const created = blog.created_at ? formatDate(blog.created_at) : '';
+                const views = typeof blog.view_count === 'number' ? blog.view_count : 0;
+                const avatarHtml = avatar
+                    ? `<img class="avatar" src="${avatar}" alt="${username}">`
+                    : `<span class="avatar avatar-fallback">${username.slice(0,1).toUpperCase()}</span>`;
+                return `
                 <div class="blog-item" onclick="viewBlog(${blog.ID})">
+                    <div class="blog-item-header">
+                        ${avatarHtml}
+                        <div>
+                            <div class="blog-author">${username}</div>
+                            <div style="font-size:12px;color:#999;">${created}</div>
+                        </div>
+                    </div>
                     <div class="blog-title">${blog.title}</div>
                     <div class="blog-summary">${blog.summary || '暂无摘要'}</div>
-                    <div class="blog-meta">
-                        <span>作者: <span class="blog-author">${blog.author.username}</span></span>
-                        <span>${formatDate(blog.created_at)} | 阅读量: ${blog.view_count}</span>
+                    <div class="blog-footer">
+                        <div class="metrics">
+                            <span class="metric">👁️ ${views}</span>
+                            <span class="metric">👍 ${blog.likes || 0}</span>
+                            <span class="metric">⭐ ${blog.favorites || 0}</span>
+                        </div>
+                        <div style="font-size:12px;color:#999;">ID: ${blog.ID}</div>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
             
             blogList.innerHTML = blogsHtml;
         }
@@ -562,6 +867,17 @@
             return true;
         }
 
+        // 控制元素显示/隐藏
+        function setDisplay(id, show) {
+            const el = document.getElementById(id);
+            if (!el) {
+                console.warn('Missing element:', id);
+                return false;
+            }
+            el.style.display = show ? '' : 'none';
+            return true;
+        }
+
         // 渲染博客详情（用于已发布或草稿）
         function renderBlogDetail(blog) {
             // 填充详情
@@ -573,8 +889,32 @@
             const viewCount = typeof blog.view_count === 'number' ? blog.view_count : 0;
             safeSetText('detail-meta', `作者: ${authorName} | 时间: ${createdAt} | 阅读: ${viewCount}`);
 
-            safeSetText('detail-summary', blog.summary || '无摘要');
-            safeSetText('detail-content', blog.content || '');
+            const summaryText = (blog.summary || '').trim();
+            const contentTextRaw = (blog.content || '').trim();
+            const showSummary = summaryText.length > 0 && summaryText !== contentTextRaw;
+            if (showSummary) {
+                setDisplay('detail-summary', true);
+                safeSetText('detail-summary', summaryText);
+            } else {
+                // 与内容相同或为空则不显示摘要，避免重复
+                setDisplay('detail-summary', false);
+                safeSetText('detail-summary', '');
+            }
+            // 使用 marked + DOMPurify 渲染 Markdown 并高亮代码
+            try {
+                const html = marked.parse(contentTextRaw, { mangle: false, headerIds: false });
+                const safe = DOMPurify.sanitize(html);
+                const el = document.getElementById('detail-content');
+                if (el) {
+                    el.innerHTML = safe;
+                    el.querySelectorAll('pre code').forEach((block) => {
+                        try { hljs.highlightElement(block); } catch (e) {}
+                    });
+                }
+            } catch (e) {
+                // 兜底为纯文本
+                safeSetText('detail-content', contentTextRaw);
+            }
 
             // 操作区
             const actions = document.getElementById('detail-actions');
