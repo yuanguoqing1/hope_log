@@ -47,6 +47,11 @@ func Debug(msg string, args ...any) {
 func Error(msg string, args ...any) {
 	infoLogger.Error(msg, append(args, caller())...)
 }
+
+func Warn(msg string, args ...any) {
+	infoLogger.Warn(msg, append(args, caller())...)
+}
+
 func Write(msg string, args ...any) {
 	writeLogger.Info(msg, append(args, caller())...)
 }

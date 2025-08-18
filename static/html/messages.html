@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留言板</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .login-prompt {
+            text-align: center;
+            padding: 20px;
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .message-form {
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        textarea, input[type="email"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .login-btn {
+            background-color: #28a745;
+            margin-left: 10px;
+        }
+        .login-btn:hover {
+            background-color: #1e7e34;
+        }
+        .user-info {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .messages-list {
+            margin-top: 30px;
+        }
+        .message-item {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 0 5px 5px 0;
+        }
+        .message-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .message-content {
+            color: #333;
+            line-height: 1.5;
+        }
+        .alert {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>留言板</h1>
+        
+        <!-- 登录提示 -->
+        <div id="loginPrompt" class="login-prompt">
+            <p>请先登录后再留言</p>
+            <button class="btn login-btn" onclick="location.href='/user/login'">去登录</button>
+        </div>
+        
+        <!-- 用户信息显示 -->
+        <div id="userInfo" class="user-info">
+            <span>当前登录用户：<strong id="currentUser"></strong></span>
+        </div>
+        
+        <!-- 留言表单 -->
+        <div class="message-form">
+            <div id="alertBox"></div>
+            
+            <form id="messageForm">
+                <div class="form-group">
+                    <label for="messageContent">留言内容：</label>
+                    <textarea id="messageContent" name="message" placeholder="请输入您的留言..." required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">邮箱（可选，用于接收回复通知）：</label>
+                    <input type="email" id="email" name="email" placeholder="your@email.com">
+                </div>
+                
+                <button type="submit" class="btn" id="submitBtn">提交留言</button>
+            </form>
+        </div>
+        
+        <!-- 留言列表 -->
+        <div class="messages-list">
+            <h3>最新留言</h3>
+            <div id="messagesList"></div>
+        </div>
+    </div>
+
+    <script>
+        // 检查登录状态
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('/api/messages/login-status');
+                const data = await response.json();
+                
+                if (response.ok && data.data && data.data.logged_in) {
+                    // 用户已登录
+                    document.getElementById('loginPrompt').style.display = 'none';
+                    document.getElementById('userInfo').style.display = 'block';
+                    document.getElementById('currentUser').textContent = data.data.username;
+                    document.getElementById('submitBtn').disabled = false;
+                    
+                    // 如果用户邮箱为空，可以预填充登录用户的邮箱
+                    // 这里需要从用户信息API获取
+                } else {
+                    // 用户未登录
+                    document.getElementById('loginPrompt').style.display = 'block';
+                    document.getElementById('userInfo').style.display = 'none';
+                    document.getElementById('submitBtn').disabled = true;
+                }
+            } catch (error) {
+                console.error('检查登录状态失败:', error);
+                document.getElementById('loginPrompt').style.display = 'block';
+                document.getElementById('userInfo').style.display = 'none';
+                document.getElementById('submitBtn').disabled = true;
+            }
+        }
+        
+        // 提交留言
+        async function submitMessage(event) {
+            event.preventDefault();
+            
+            const messageContent = document.getElementById('messageContent').value.trim();
+            const email = document.getElementById('email').value.trim();
+            
+            if (!messageContent) {
+                showAlert('请输入留言内容', 'error');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '提交中...';
+            
+            try {
+                const response = await fetch('/api/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: messageContent,
+                        email: email
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert('留言提交成功！', 'success');
+                    document.getElementById('messageForm').reset();
+                    loadMessages(); // 重新加载留言列表
+                } else {
+                    showAlert(data.msg || '提交失败', 'error');
+                }
+            } catch (error) {
+                console.error('提交留言失败:', error);
+                showAlert('网络错误，请稍后重试', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '提交留言';
+            }
+        }
+        
+        // 显示提示信息
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                alertBox.innerHTML = '';
+            }, 3000);
+        }
+        
+        // 加载留言列表
+        async function loadMessages() {
+            try {
+                const response = await fetch('/api/messages?page=1&page_size=10');
+                const data = await response.json();
+                
+                if (response.ok && data.data && data.data.messages) {
+                    const messagesList = document.getElementById('messagesList');
+                    
+                    if (data.data.messages.length === 0) {
+                        messagesList.innerHTML = '<p style="text-align: center; color: #666;">暂无留言</p>';
+                        return;
+                    }
+                    
+                    const messagesHTML = data.data.messages.map(message => `
+                        <div class="message-item">
+                            <div class="message-meta">
+                                <strong>${message.username}</strong> • 
+                                ${new Date(message.created_at).toLocaleString('zh-CN')}
+                            </div>
+                            <div class="message-content">${message.content}</div>
+                        </div>
+                    `).join('');
+                    
+                    messagesList.innerHTML = messagesHTML;
+                } else {
+                    document.getElementById('messagesList').innerHTML = '<p style="text-align: center; color: #666;">加载留言失败</p>';
+                }
+            } catch (error) {
+                console.error('加载留言失败:', error);
+                document.getElementById('messagesList').innerHTML = '<p style="text-align: center; color: #666;">加载留言失败</p>';
+            }
+        }
+        
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLoginStatus();
+            loadMessages();
+            
+            // 绑定表单提交事件
+            document.getElementById('messageForm').addEventListener('submit', submitMessage);
+        });
+    </script>
+</body>
+</html>

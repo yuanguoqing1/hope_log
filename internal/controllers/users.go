@@ -101,8 +101,8 @@ func (u Users) Login(c *gin.Context) {
 	
 	// 登录成功，更新最后登录时间
 	if err := user.UpdateLastLogin(config.GetDB()); err != nil {
-		// 记录错误但不影响登录流程
-		// 可以在这里添加日志记录
+		JsonStruct_bad{}.ReturnError(c, 500, "更新最后登录时间失败", err.Error())
+		return
 	}
 	
 	// 保存用户信息到session
@@ -117,10 +117,6 @@ func (u Users) Login(c *gin.Context) {
 		JsonStruct_bad{}.ReturnError(c, 500, "Session保存失败", err.Error())
 		return
 	}
-	
-
-
-
 	
 	// 返回登录成功信息
 	JsonStruct{}.ReturnSuccess(c, 200, "登录成功", gin.H{

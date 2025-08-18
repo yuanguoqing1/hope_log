@@ -9,3 +9,21 @@ database:
   password: 123456
   database: web_blog
   charset: utf8mb4
+
+redis:
+  port: 6379
+  host: localhost
+  password : 
+
+ai:
+  api_key: 9d70b6827dbe1b7823fd518b093dbca4dd2e6c65
+  base_url: https://api-dcp7q4e6mek2cdh8.aistudio-app.com/v1
+
+# 邮件配置（示例配置，请根据实际情况修改）
+email:
+  host: smtp.qq.com          # QQ邮箱SMTP服务器
+  port: 587                  # SMTP端口
+  username: 413525149@qq.com                 # 你的邮箱账号
+  password: bontsyohivsgbghf                 # 邮箱授权码（不是登录密码）
+  from:       413525149@qq.com                # 发件人邮箱
+  admin_emails: 413525149@qq.com              # 管理员邮箱，多个用逗号分隔

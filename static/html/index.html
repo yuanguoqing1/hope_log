@@ -308,6 +308,7 @@
             background: #6c757d;
             color: white;
         }
+        /* 留言弹窗额外样式可复用通用modal */
         /* 代码块样式 */
         pre {
             background: #f6f8fa;
@@ -365,14 +366,8 @@
     <nav class="navbar">
         <div class="navbar-title">博客页面</div>
         <div class="header-menus">
-            <div class="menu-dropdown">
-                <button class="menu-dropdown-btn">博客</button>
-                <div class="menu-dropdown-menu">
-                    <a href="#" id="menu-new-blog">新建博客</a>
-                    <a href="#" id="menu-published">已发布</a>
-                    <a href="#" id="menu-drafts">草稿</a>
-                </div>
-            </div>
+
+
             <div class="menu-dropdown">
                 <button class="menu-dropdown-btn">功能</button>
                 <div class="menu-dropdown-menu">
@@ -384,17 +379,17 @@
             <div class="menu-dropdown">
                 <button class="menu-dropdown-btn">分类</button>
                 <div class="menu-dropdown-menu">
-                    <a href="#" class="disabled">技术（敬请期待）</a>
-                    <a href="#" class="disabled">生活（敬请期待）</a>
-                    <a href="#" class="disabled">随笔（敬请期待）</a>
+                    <a href="#" >博客</a>
+                    <a href="/software">软件</a>
+                    <a href="/f" >功能</a>
                 </div>
             </div>
             <div class="menu-dropdown">
                 <button class="menu-dropdown-btn">更多</button>
-                <div class="menu-dropdown-menu">
-                    <a href="/user/settings">用户设置</a>
-                    <a href="/user/login">登录</a>
-                    <a href="/user/register">注册</a>
+                <div class="menu-dropdown-menu">    
+                    <a href="#" id="menu-contact">联系我</a>
+                    <a href="#" id="menu-about">关于我</a>
+                    <a href="#" id="menu-chat">留言</a>
                 </div>
             </div>
         </div>
@@ -422,6 +417,14 @@
         
         <!-- 分页 -->
         <div id="pagination" class="pagination" style="display: none;"></div>
+    </div>
+
+    <!-- 页脚：网站访问计数 -->
+    <div id="site-visit-footer" style="
+        position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%);
+        background: rgba(0,0,0,0.55); color: #fff; padding: 6px 12px; border-radius: 16px;
+        font-size: 14px; z-index: 1001;">
+        网站已接待：<span id="site-visit-count">-</span> 人
     </div>
 
     <!-- 新建博客模态框 -->
@@ -474,6 +477,39 @@
                 <p id="detail-summary" style="background:#f8f9fa; padding:10px; border-radius:6px;"></p>
                 <div id="detail-content" style="margin-top:12px; white-space: pre-wrap;"></div>
                 <div id="detail-actions" style="margin-top: 16px; text-align: right;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通用信息模态框（关于我/联系我） -->
+    <div id="info-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="info-title">信息</h3>
+                <span class="close" onclick="closeInfoModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="info-body"></div>
+        </div>
+    </div>
+
+    <!-- 留言模态框 -->
+    <div id="message-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>留言</h3>
+                <span class="close" onclick="closeMessageModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="message-form">
+                    <div class="form-group">
+                        <label for="message-text">请输入留言内容</label>
+                        <textarea id="message-text" name="message" rows="5" required placeholder="说点什么吧..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" onclick="closeMessageModal()">取消</button>
+                        <button type="submit">提交</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -562,6 +598,8 @@
             loadBlogs();
             initHeaderMenus();
             initPetalEffects();
+            // 页面加载后增加访问计数
+            incrementVisitCounter();
             
             // 绑定新建博客按钮事件
             document.getElementById('new-blog-btn').addEventListener('click', openBlogModal);
@@ -586,6 +624,28 @@
                 });
             }
         });
+
+        // 调用后端接口，自增并显示网站访问计数
+        function incrementVisitCounter(){
+            fetch('/api/metrics/visit', {
+                method: 'GET',
+                credentials: 'include'
+            })
+            .then(res => res.json())
+            .then(data => {
+                const count = (data && data.data && typeof data.data.count !== 'undefined')
+                    ? data.data.count
+                    : (typeof data?.count !== 'undefined' ? data.count : null);
+                if (count !== null) {
+                    const el = document.getElementById('site-visit-count');
+                    if (el) el.textContent = count;
+                }
+            })
+            .catch(() => {
+                const el = document.getElementById('site-visit-count');
+                if (el) el.textContent = '-';
+            });
+        }
 
         function setFilterActiveButton(){
             const pubBtn = document.getElementById('filter-published');
@@ -735,6 +795,100 @@
                 e.preventDefault();
                 document.body.classList.toggle('dark');
             });
+
+            // 留言
+            const chatLink = document.getElementById('menu-chat');
+            if (chatLink) chatLink.addEventListener('click', function(e){
+                e.preventDefault();
+                openMessageModal();
+            });
+
+            // 关于我 / 联系我 弹窗
+            const aboutLink = document.getElementById('menu-about');
+            if (aboutLink) aboutLink.addEventListener('click', function(e){
+                e.preventDefault();
+                openInfoModal('关于我', `
+                    <p>你好！我是Hope，一个热爱编程的年轻人。</p>
+                    <p>我是一个喜欢研究技术的程序员，喜欢分享自己的学习心得和经验。</p>
+                    <p>这是一个用gin框架搭建的博客系统，欢迎访问。</p>
+                `);
+            });
+            const contactLink = document.getElementById('menu-contact');
+            if (contactLink) contactLink.addEventListener('click', function(e){
+                e.preventDefault();
+                openInfoModal('联系我', `
+                    <p>欢迎联系我：</p>
+                    <ul>
+                        <li>邮箱：15166622635@163.com</li>
+                        <li>微信：15166622635</li>
+                    </ul>
+                `);
+            });
+        }
+
+        // 打开/关闭 通用信息模态框
+        function openInfoModal(title, html) {
+            const titleEl = document.getElementById('info-title');
+            const bodyEl = document.getElementById('info-body');
+            const modal = document.getElementById('info-modal');
+            if (!titleEl || !bodyEl || !modal) return;
+            titleEl.textContent = title || '信息';
+            // 使用 DOMPurify 进行安全渲染
+            if (window.DOMPurify) {
+                bodyEl.innerHTML = DOMPurify.sanitize(html || '');
+            } else {
+                bodyEl.innerHTML = html || '';
+            }
+            modal.style.display = 'block';
+        }
+
+        // 留言：打开/关闭/提交
+        function openMessageModal(){
+            const modal = document.getElementById('message-modal');
+            if (modal) modal.style.display = 'block';
+        }
+        function closeMessageModal(){
+            const modal = document.getElementById('message-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        // 绑定留言表单提交
+        document.addEventListener('DOMContentLoaded', function(){
+            const form = document.getElementById('message-form');
+            if (form) {
+                form.addEventListener('submit', function(e){
+                    e.preventDefault();
+                    const textarea = document.getElementById('message-text');
+                    const message = (textarea && textarea.value || '').trim();
+                    if (!message) {
+                        alert('请输入留言内容');
+                        return;
+                    }
+                    fetch('/api/messages', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ message })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.code === 200) {
+                            alert('留言已提交');
+                            textarea.value = '';
+                            closeMessageModal();
+                        } else {
+                            alert(data?.msg || '提交失败');
+                        }
+                    })
+                    .catch(() => {
+                        alert('提交过程中发生错误');
+                    });
+                });
+            }
+        });
+        function closeInfoModal() {
+            const modal = document.getElementById('info-modal');
+            if (modal) modal.style.display = 'none';
         }
 
         // 加载博客列表

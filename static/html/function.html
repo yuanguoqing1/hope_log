@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>功能广场</title>
+    <style>
+        html, body { min-height: 100vh; }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            background: #0c0f14 url('/static/img/%E8%83%8C%E6%99%AF.jpg') center center / cover no-repeat fixed;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #222;
+            color: #fff;
+            padding: 0 24px;
+            height: 56px;
+        }
+        .navbar a { color:#fff; text-decoration:none; }
+        .navbar-title { font-size: 1.2rem; font-weight: 600; letter-spacing: 1px; }
+
+        .container {
+            margin: 32px auto;
+            max-width: 1100px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+            backdrop-filter: blur(16px) saturate(120%);
+            -webkit-backdrop-filter: blur(16px) saturate(120%);
+            padding: 24px;
+            color: #000;
+        }
+        .section-title { color:#000; margin: 0 0 16px; }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .card {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 12px;
+            padding: 16px;
+            color: #000;
+            cursor: pointer;
+            transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+        }
+        .card:hover { transform: translateY(-2px); background: rgba(255,255,255,0.12); box-shadow: 0 10px 28px rgba(0,0,0,0.25); }
+        .card h4 { margin: 0 0 6px; }
+        .card p { margin: 0; color:#000; font-size: 13px; line-height: 1.5; }
+
+        /* 模态框样式（沿用 index.html 风格） */
+        .modal { position: fixed; inset: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display:none; }
+        .modal-content {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #ffffff; border-radius: 10px; width: 92%; max-width: 780px; max-height: 90vh; overflow: auto;
+        }
+        .modal-header { display:flex; align-items:center; justify-content: space-between; padding:16px 20px; border-bottom: 1px solid #eee; }
+        .modal-header h3 { margin: 0; }
+        .close { font-size: 22px; cursor: pointer; color: #888; }
+        .close:hover { color:#333; }
+        .modal-body { padding: 18px 20px; }
+
+        /* 留言与AI表单 */
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display:block; margin-bottom:6px; font-weight:600; color:#000; }
+        .form-group input, .form-group textarea { width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box; font-size:14px; }
+        .form-actions { display:flex; justify-content:flex-end; gap:10px; margin-top: 10px; }
+        .btn { padding:8px 14px; border:none; border-radius:6px; cursor:pointer; }
+        .btn-primary { background:#007bff; color:#fff; }
+        .btn-secondary { background:#6c757d; color:#fff; }
+
+        /* AI 聊天区域 */
+        .chat-box { border:1px solid #eee; border-radius:8px; padding:10px; height: 380px; overflow:auto; background:#fafafa; color:#000; }
+        .chat-msg { margin: 8px 0; padding:8px 10px; border-radius:8px; max-width: 78%; white-space: pre-wrap; word-break: break-word; }
+        .chat-user { background:#dbeafe; align-self:flex-end; margin-left:auto; color:#000; }
+        .chat-ai { background:#e5e7eb; align-self:flex-start; color:#000; }
+        .chat-input { display:flex; gap:8px; margin-top: 10px; }
+        .chat-input textarea { flex:1; height:68px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-title">功能广场</div>
+        <div>
+            <a href="/">返回首页</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2 class="section-title">常用小工具</h2>
+        <div class="feature-grid">
+            <div class="card" id="card-ai">
+                <h4>AI 助手</h4>
+                <p>简单对话（演示版，本地回声回答）</p>
+            </div>
+            <div class="card" id="card-message">
+                <h4>留言给站长</h4>
+                <p>提交留言，后端记录日志</p>
+            </div>
+            <div class="card" id="card-time">
+                <h4>时间戳转换</h4>
+                <p>Unix ↔ 本地时间</p>
+            </div>
+            <div class="card" id="card-text-stats">
+                <h4>文本统计</h4>
+                <p>字数、行数、单词（简单中文计数）</p>
+            </div>
+            <div class="card" id="card-md">
+                <h4>Markdown 预览</h4>
+                <p>将 Markdown 渲染为 HTML（本地预览）</p>
+            </div>
+            <div class="card">
+                <h4>JSON 格式化</h4>
+                <p>一键美化（即将推出）</p>
+            </div>
+            <div class="card">
+                <h4>二维码生成</h4>
+                <p>离线生成（即将推出）</p>
+            </div>
+            <div class="card">
+                <h4>图片压缩</h4>
+                <p>浏览器侧压缩（即将推出）</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 留言模态框 -->
+    <div id="message-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>留言给站长</h3>
+                <span class="close" onclick="closeMessageModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="message-form">
+                    <div class="form-group">
+                        <label for="message-text">留言内容</label>
+                        <textarea id="message-text" name="message" rows="6" placeholder="说点什么吧..." required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeMessageModal()">取消</button>
+                        <button type="submit" class="btn btn-primary">提交</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI 助手模态框 -->
+    <div id="ai-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>AI 助手（演示版）</h3>
+                <span class="close" onclick="closeAiModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="chat" class="chat-box"></div>
+                <div class="chat-input">
+                    <textarea id="chat-input" placeholder="输入你的问题..."></textarea>
+                    <button id="chat-send" class="btn btn-primary">发送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 时间戳转换模态框 -->
+    <div id="time-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>时间戳转换</h3>
+                <span class="close" onclick="closeTimeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="ts-input">Unix 时间戳（秒）</label>
+                    <input id="ts-input" placeholder="例如 1714732800">
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="nowToTs()">现在 → 时间戳</button>
+                    <button class="btn btn-primary" onclick="tsToDate()">转换为日期</button>
+                </div>
+                <div style="margin-top:12px; color:#333;" id="ts-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文本统计模态框 -->
+    <div id="text-stats-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>文本统计</h3>
+                <span class="close" onclick="closeTextStatsModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="stats-input">输入文本</label>
+                    <textarea id="stats-input" rows="8" placeholder="粘贴或输入待统计文本..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="calcTextStats()">统计</button>
+                </div>
+                <div style="margin-top:12px; color:#333;" id="stats-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Markdown 预览模态框 -->
+    <div id="md-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Markdown 预览</h3>
+                <span class="close" onclick="closeMdModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="md-input">Markdown</label>
+                    <textarea id="md-input" rows="10" placeholder="# Hello\n\n- item 1\n- item 2"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="previewMarkdown()">预览</button>
+                </div>
+                <div id="md-preview" style="margin-top:12px; background:#f6f8fa; padding:12px; border-radius:8px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 卡片绑定
+        document.addEventListener('DOMContentLoaded', function(){
+            const ai = document.getElementById('card-ai');
+            if (ai) ai.addEventListener('click', openAiModal);
+            const msg = document.getElementById('card-message');
+            if (msg) msg.addEventListener('click', openMessageModal);
+            const time = document.getElementById('card-time');
+            if (time) time.addEventListener('click', openTimeModal);
+            const stats = document.getElementById('card-text-stats');
+            if (stats) stats.addEventListener('click', openTextStatsModal);
+            const md = document.getElementById('card-md');
+            if (md) md.addEventListener('click', openMdModal);
+
+            // 留言提交
+            const form = document.getElementById('message-form');
+            if (form) form.addEventListener('submit', function(e){
+                e.preventDefault();
+                const textarea = document.getElementById('message-text');
+                const message = (textarea && textarea.value || '').trim();
+                if (!message) { alert('请输入留言内容'); return; }
+                fetch('/api/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ message })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.code === 200) {
+                        alert('留言已提交');
+                        textarea.value = '';
+                        closeMessageModal();
+                    } else {
+                        alert(data?.msg || '提交失败');
+                    }
+                })
+                .catch(() => alert('提交过程中发生错误'));
+            });
+
+            // AI 发送（演示：回声应答）
+            const sendBtn = document.getElementById('chat-send');
+            if (sendBtn) sendBtn.addEventListener('click', sendChatMessage);
+        });
+
+        // 打开/关闭 留言
+        function openMessageModal(){ document.getElementById('message-modal').style.display = 'block'; }
+        function closeMessageModal(){ document.getElementById('message-modal').style.display = 'none'; }
+
+        // 打开/关闭 AI
+        function openAiModal(){ document.getElementById('ai-modal').style.display = 'block'; }
+        function closeAiModal(){ document.getElementById('ai-modal').style.display = 'none'; }
+
+        // 打开/关闭 时间戳
+        function openTimeModal(){ document.getElementById('time-modal').style.display = 'block'; }
+        function closeTimeModal(){ document.getElementById('time-modal').style.display = 'none'; }
+
+        // 打开/关闭 文本统计
+        function openTextStatsModal(){ document.getElementById('text-stats-modal').style.display = 'block'; }
+        function closeTextStatsModal(){ document.getElementById('text-stats-modal').style.display = 'none'; }
+
+        // 打开/关闭 Markdown 预览
+        function openMdModal(){ document.getElementById('md-modal').style.display = 'block'; }
+        function closeMdModal(){ document.getElementById('md-modal').style.display = 'none'; }
+
+        // AI 聊天（演示：在前端生成回复）
+        function sendChatMessage(){
+            const input = document.getElementById('chat-input');
+            const text = (input && input.value || '').trim();
+            if (!text) { alert('请输入内容'); return; }
+            appendChat('user', text);
+            input.value = '';
+            // 简单“AI”回声：可后续替换为后端接口
+            const reply = generateDummyAiReply(text);
+            setTimeout(() => appendChat('ai', reply), 300);
+        }
+        function appendChat(role, content){
+            const box = document.getElementById('chat');
+            if (!box) return;
+            const wrap = document.createElement('div');
+            wrap.className = 'chat-msg ' + (role === 'user' ? 'chat-user' : 'chat-ai');
+            wrap.textContent = content;
+            box.appendChild(wrap);
+            box.scrollTop = box.scrollHeight;
+        }
+        function generateDummyAiReply(text){
+            const tips = [
+                '这是演示版AI的回复，可在后端接入真实大模型。',
+                '建议：将你的问题描述得更具体，效果会更好。',
+                '若要使用真实AI，请实现后端接口 /api/ai/chat。'
+            ];
+            let summary = text.length > 60 ? text.slice(0, 60) + '...' : text;
+            return '你说："' + summary + '"\n\n' + tips[Math.floor(Math.random()*tips.length)];
+        }
+
+        // 时间戳转换
+        function tsToDate(){
+            const val = document.getElementById('ts-input').value.trim();
+            const n = Number(val);
+            if (!val || Number.isNaN(n)) { document.getElementById('ts-result').textContent = '请输入正确的秒级时间戳'; return; }
+            const d = new Date(n * 1000);
+            document.getElementById('ts-result').textContent = d.toLocaleString('zh-CN');
+        }
+        function nowToTs(){
+            const now = Math.floor(Date.now()/1000);
+            document.getElementById('ts-result').textContent = '当前时间戳：' + now;
+        }
+
+        // 文本统计
+        function calcTextStats(){
+            const text = document.getElementById('stats-input').value || '';
+            const lines = text.split(/\r?\n/).length;
+            const chars = text.length;
+            // 非严格词语分割（英文单词 + 简单中文按字符计）
+            const words = (text.match(/[A-Za-z0-9_]+|[\u4e00-\u9fa5]/g) || []).length;
+            document.getElementById('stats-result').textContent = `行: ${lines}，字数: ${chars}，词/字: ${words}`;
+        }
+
+        // Markdown 预览（最简替代，无外部库）
+        function previewMarkdown(){
+            const src = document.getElementById('md-input').value || '';
+            // 非严格：仅替换行内代码和粗体、标题等极简示意
+            let html = src
+                .replace(/^###\s(.+)$/gm, '<h3>$1</h3>')
+                .replace(/^##\s(.+)$/gm, '<h2>$1</h2>')
+                .replace(/^#\s(.+)$/gm, '<h1>$1</h1>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/`([^`]+?)`/g, '<code>$1</code>')
+                .replace(/\n/g, '<br/>');
+            document.getElementById('md-preview').innerHTML = html;
+        }
+    </script>
+</body>
+<!-- by hope_log -->
+</html>
+
